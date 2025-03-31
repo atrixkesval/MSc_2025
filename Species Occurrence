@@ -1,1 +1,71 @@
+## Species Distribution Modelling in R
+## Part 1: Species Occurrence Data
+## Tutorial from: https://damariszurell.github.io/
+
+#Download Packages
+rgbif (Chamberlain et al., 2024)
+sf
+ggplot2
+geodata
+
+#Load Packages 
+library(rgbif)
+library(sf)
+library(ggplot2)
+library(geodata)
+
+#Downloaded records - Filtered to those with coordinate information and basis of record
+#Repeated for each of the study species
+#Removed species with less than 20 occurrences
+gbif_Phoenix_canariensis <- occ_search(scientificName = "Phoenix canariensis", hasCoordinate=T, basisOfRecord='HUMAN_OBSERVATION', limit = 10)
+
+#Only keeping the records information
+gbif_Phoenix_canariensis <- gbif_Phoenix_canariensis$data
+
+#Removing coordinate information with NA
+swphocana <- subset(gbif_Phoenix_canariensis, !is.na(decimalLongitude) & !is.na(decimalLatitude))
+
+
+#Only keeping relevant information
+#check colnames for each species to ensure numbers and columns line up - this may be slightly different for each species
+#Example below: 2 = scientificName, 3 = decimalLatitude, 4 = decimalLongitude, 16 = basisOfRecord, 35 = species, 41 = coordinateUncertaintyInMeters, 42 = continent, 67 = country
+swphocana[1:300, c(2:3, 4, 16, 35, 41, 42, 67)]
+
+#explanation
+#First line : This subsets the swtrachfort data frame, selecting only the columns named 
+#"decimalLongitude" and "decimalLatitude". 
+
+#na.omit(): This function removes rows with NA (missing) values from the subsetted data. 
+#If either decimalLongitude or decimalLatitude is missing for a row, that row is excluded.
+
+#coords = c("lon", "lat") : Specifies which columns contain the spatial coordinates
+#(longitude and latitude) for the points.
+
+#crs = 4326 :Defines the coordinate reference system (CRS) for the spatial data.
+#4326 is the EPSG code for the WGS 84 CRS, commonly used for GPS coordinates 
+#(longitude and latitude in degrees).
+
+# For each dataset, include the species column and process
+swphocana <- na.omit(swphocana[, c("decimalLongitude", "decimalLatitude", "species")])
+colnames(swphocana) <- c("lon", "lat", "species")
+swphocana_sf <- st_as_sf(swphocana, coords = c("lon", "lat"), crs = 4326)
+
+#Plot occurrence data 
+#Refer to spatial thinning code before plotting!
+
+#Phoenix canariensis - New Zealand
+library(geodata)
+wrld <- world(path=".")
+plot(wrld, xlim=c(165,180), ylim=c(-50,-32), col="white", border="black")
+points(gbif_pho_cana_cleaned, col = "red", pch = 16, cex = 0.5) # Red points, circle style
+
+#Phoenix canariensis - World
+library(geodata)
+wrld <- world(path=".")
+plot(wrld, col="white", border="black")
+points(gbif_pho_cana_cleaned, col = "red", pch = 16, cex = 0.5) # Red points, circle style
+
+#Part 2: Coordinate Cleaner 
+
+
 
